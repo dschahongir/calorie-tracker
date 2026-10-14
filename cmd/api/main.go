@@ -19,6 +19,9 @@ import (
 	"calories-checker/internal/usecase"
 	"calories-checker/pkg/config"
 	"calories-checker/pkg/logger"
+	"calories-checker/pkg/gemini"
+	swaggerFiles "github.com/swaggo/files"
+    ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -52,7 +55,9 @@ func main() {
 	foodRepo := repository.NewPostgresFoodRepository(dbPool)
 	waterRepo := repository.NewPostgresWaterRepository(dbPool)
 	bodyMetricRepo := repository.NewPostgresBodyMetricRepository(dbPool)
-	geminiClient := repository.NewGeminiClient(cfg.GeminiAPIKey)
+
+	geminiClient := gemini.NewClient(cfg.GeminiAPIKey)
+
 
 	foodUC := usecase.NewFoodUsecase(foodRepo)
 	waterUC := usecase.NewWaterUsecase(waterRepo)
@@ -75,6 +80,7 @@ func main() {
 		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	go func() {
 		appLogger.Info("Server starting", "port", cfg.Port)

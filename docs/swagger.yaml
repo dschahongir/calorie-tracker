@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Calorie Tracker API
+  description: REST API для трекинга калорий, БЖУ, воды и веса с интеграцией Gemini AI.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development Server
+
+paths:
+  /food:
+    post:
+      summary: Ручное добавление приёма пищи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Ош (Плов)"
+                calories:
+                  type: number
+                  example: 650.0
+                protein:
+                  type: number
+                  example: 25.0
+                carbs:
+                  type: number
+                  example: 70.0
+                fat:
+                  type: number
+                  example: 30.0
+                weight_grams:
+                  type: number
+                  example: 350.0
+                consumed_at:
+                  type: string
+                  format: date-time
+                  example: "2026-10-14T13:00:00Z"
+      responses:
+        '201':
+          description: Успешно добавлено
+        '400':
+          description: Ошибка валидации JSON
+
+  /food/analyze-image:
+    post:
+      summary: Распознавание еды по фото через Gemini AI
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Еда успешно распознана и сохранена
+        '400':
+          description: Файл изображения не передан
+        '500':
+          description: Ошибка Gemini API или базы данных
+
+  /food/daily:
+    get:
+      summary: Получение сводки по еде и БЖУ за день
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+          example: "2026-10-14"
+          description: Дата в формате YYYY-MM-DD (по умолчанию сегодня)
+      responses:
+        '200':
+          description: Дневная статистика
+
+  /water:
+    post:
+      summary: Добавление выпитой воды
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount_ml
+              properties:
+                amount_ml:
+                  type: integer
+                  example: 350
+      responses:
+        '200':
+          description: Запись добавлена
+
+  /water/daily:
+    get:
+      summary: Суммарный объем воды за сегодня
+      responses:
+        '200':
+          description: Общий объем в мл
+
+  /weight:
+    post:
+      summary: Запись текущего веса
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - weight_kg
+              properties:
+                weight_kg:
+                  type: number
+                  example: 78.5
+      responses:
+        '200':
+          description: Вес успешно записан
+
+  /weight/latest:
+    get:
+      summary: Получение последнего измеренного веса
+      responses:
+        '200':
+          description: Последнее значение веса
